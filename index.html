@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gravitational Lensing Explained</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0a0d22;
+      color: #e0e0ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      max-width: 1000px;
+    }
+
+    .header {
+      padding: 40px 0;
+      text-align: center;
+      background: linear-gradient(to right, #0f1942, #1a103d);
+      border-radius: 0 0 50px 50px;
+      margin-bottom: 30px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(100, 149, 237, 0.8);
+    }
+
+    .subtitle {
+      color: #add8e6;
+      font-style: italic;
+    }
+
+    .lens-container {
+      position: relative;
+      margin: 50px auto;
+      height: 400px;
+      border-radius: 20px;
+      background-color: rgba(10, 15, 40, 0.7);
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    #lensCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .info-card {
+      background: linear-gradient(135deg, rgba(25, 25, 65, 0.9), rgba(10, 10, 30, 0.9));
+      border-radius: 15px;
+      border: 1px solid rgba(100, 149, 237, 0.3);
+      padding: 25px;
+      margin-bottom: 30px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .info-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(100, 149, 237, 0.2);
+    }
+
+    .info-card h3 {
+      color: #add8e6;
+      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(100, 149, 237, 0.3);
+      padding-bottom: 10px;
+    }
+
+    .star {
+      position: absolute;
+      background-color: #fff;
+      border-radius: 50%;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      color: #7a85a8;
+      font-size: 0.9em;
+    }
+
+    .controls {
+      background: rgba(20, 30, 70, 0.7);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .slider-container {
+      margin-bottom: 15px;
+    }
+
+    .form-label {
+      color: #add8e6;
+    }
+
+    .form-range::-webkit-slider-thumb {
+      background: #4169e1;
+    }
+
+    .btn-primary {
+      background-color: #4169e1;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: #2a4fd6;
+    }
+
+    .example-images {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      margin-top: 30px;
+    }
+
+    .example-image {
+      width: 48%;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .example-image img {
+      width: 100%;
+      transition: transform 0.3s;
+    }
+
+    .example-image:hover img {
+      transform: scale(1.03);
+    }
+
+    .example-image .caption {
+      background: rgba(30, 40, 80, 0.9);
+      padding: 10px;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+      .example-image {
+        width: 100%;
+      }
+    }
+
+    .stars-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+<div class="stars-bg" id="starsBg"></div>
+
+<div class="container">
+  <div class="header">
+    <h1>Gravitational Lensing</h1>
+    <p class="subtitle">Bending Light in the Cosmic Ocean</p>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="info-card">
+        <h3>What is Gravitational Lensing?</h3>
+        <p>Gravitational lensing is a phenomenon where light from a distant source is bent due to the gravitational field of a massive object lying between the source and the observer.</p>
+        <p>Predicted by Einstein's Theory of General Relativity, this effect allows astronomers to observe objects that would otherwise be hidden or too faint to detect.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="info-card">
+        <h3>How Does It Work?</h3>
+        <p>Massive objects like galaxies and galaxy clusters curve spacetime around them. Light follows this curved path rather than traveling in a straight line.</p>
+        <p>The bending can create multiple images, arcs, rings, or magnified views of distant cosmic objects, acting as a natural telescope in space.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="lens-container">
+    <canvas id="lensCanvas"></canvas>
+  </div>
+
+  <div class="controls">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="slider-container">
+          <label for="massSlider" class="form-label">Lens Mass</label>
+          <input type="range" class="form-range" id="massSlider" min="5" max="50" value="30">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="slider-container">
+          <label for="sourcePositionSlider" class="form-label">Source Position</label>
+          <input type="range" class="form-range" id="sourcePositionSlider" min="0" max="100" value="50">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="slider-container">
+          <label for="viewerDistanceSlider" class="form-label">Viewer Distance</label>
+          <input type="range" class="form-range" id="viewerDistanceSlider" min="50" max="150" value="100">
+        </div>
+      </div>
+    </div>
+    <div class="text-center">
+      <button id="resetBtn" class="btn btn-primary">Reset Simulation</button>
+      <button id="stopBtn" class="btn btn-secondary ms-2">Stop</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="info-card">
+        <h3>Types of Gravitational Lensing</h3>
+        <p><strong>Strong Lensing:</strong> Creates multiple images, arcs, or Einstein rings when the alignment is nearly perfect.</p>
+        <p><strong>Weak Lensing:</strong> Causes subtle distortions in the shapes of background galaxies, helping map dark matter.</p>
+        <p><strong>Microlensing:</strong> Temporary brightness increases when a star passes in front of another star, used to detect exoplanets.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="info-card">
+        <h3>Scientific Value</h3>
+        <p>Gravitational lensing helps astronomers:</p>
+        <ul>
+          <li>Detect and map dark matter</li>
+          <li>Study very distant galaxies magnified by the lens effect</li>
+          <li>Measure the Hubble constant and cosmic expansion</li>
+          <li>Test theories of gravity on cosmic scales</li>
+          <li>Discover exoplanets through microlensing events</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-images">
+    <div class="example-image">
+      <img src="img/Einstein_Ring.JPG" alt="Einstein Ring">
+      <div class="caption">Einstein Ring: When a source, lens, and observer are perfectly aligned, creating a complete ring.</div>
+    </div>
+    <div class="example-image">
+      <img src="img/Einstein_cross.jpg" alt="Einstein Cross">
+      <div class="caption">Einstein Cross: A quasar appears as four images around a foreground galaxy.</div>
+    </div>
+    <div class="example-image">
+      <img src="img/GravitationalArc.jpg" alt="Gravitational Arcs">
+      <div class="caption">Gravitational Arcs: Distant galaxies stretched into arcs by a massive galaxy cluster.</div>
+    </div>
+    <div class="example-image">
+      <img src="img/Microlensingexoplanet.gif" alt="Microlensing Event">
+      <div class="caption">Microlensing Event: Temporary brightening of a background star as another star passes in front of it.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© 2025 Pavlos Orfanidis. Created for educational purposes.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    let stopBtn = document.getElementById('stopBtn');
+    let isAnimating = true;
+
+    stopBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      stopBtn.textContent = isAnimating ? 'Stop' : 'Resume';
+      stopBtn.classList.toggle('btn-secondary', isAnimating);
+      stopBtn.classList.toggle('btn-success', !isAnimating);
+    });
+
+    // Create starry background
+    const starsBg = document.getElementById('starsBg');
+    for (let i = 0; i < 200; i++) {
+      createStar(starsBg);
+    }
+
+    // Canvas setup
+    const canvas = document.getElementById('lensCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas dimensions
+    function setCanvasSize() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+
+    setCanvasSize();
+    window.addEventListener('resize', setCanvasSize);
+
+    // Simulation parameters
+    let massSlider = document.getElementById('massSlider');
+    let sourcePositionSlider = document.getElementById('sourcePositionSlider');
+    let viewerDistanceSlider = document.getElementById('viewerDistanceSlider');
+    let resetBtn = document.getElementById('resetBtn');
+
+    // Simulation variables
+    let mass = parseInt(massSlider.value);
+    let sourcePosition = parseInt(sourcePositionSlider.value);
+    let viewerDistance = parseInt(viewerDistanceSlider.value);
+
+    // Light rays
+    const rays = [];
+    const numRays = 100;
+
+    // Initialize rays
+    function initRays() {
+      rays.length = 0;
+      const sourceX = canvas.width * (sourcePosition / 100);
+      const sourceY = canvas.height * 0.2;
+
+      for (let i = 0; i < numRays; i++) {
+        const angle = (i / numRays) * Math.PI;
+        rays.push({
+          x: sourceX,
+          y: sourceY,
+          dx: Math.cos(angle) * 2,
+          dy: Math.sin(angle) * 2,
+          points: [{x: sourceX, y: sourceY}],
+          color: `hsl(${(i / numRays) * 260}, 100%, 70%)`
+        });
+      }
+    }
+
+    // Gravitational lens
+    const lens = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      radius: 20
+    };
+
+    // Update lens position
+    function updateLens() {
+      lens.x = canvas.width / 2;
+      lens.y = canvas.height / 2;
+      lens.radius = mass / 2;
+    }
+
+    // Update ray positions
+    function updateRays() {
+      const sourceX = canvas.width * (sourcePosition / 100);
+      const viewerY = canvas.height * (viewerDistance / 100);
+
+      rays.forEach(ray => {
+        // Reset ray to source
+        ray.x = sourceX;
+        ray.y = canvas.height * 0.2;
+        ray.points = [{x: ray.x, y: ray.y}];
+
+        // Trace ray until it reaches viewer or leaves canvas
+        for (let steps = 0; steps < 1000; steps++) {
+          // Calculate gravitational effect
+          const dx = lens.x - ray.x;
+          const dy = lens.y - ray.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance > 5) {  // Avoid division by zero and extreme deflection
+            const force = mass / (distance * distance);
+            ray.dx += dx / distance * force;
+            ray.dy += dy / distance * force;
+          }
+
+          // Normalize direction vector
+          const speed = Math.sqrt(ray.dx * ray.dx + ray.dy * ray.dy);
+          ray.dx = ray.dx / speed * 2;
+          ray.dy = ray.dy / speed * 2;
+
+          // Move ray
+          ray.x += ray.dx;
+          ray.y += ray.dy;
+
+          // Record position
+          ray.points.push({x: ray.x, y: ray.y});
+
+          // Check if ray reached viewer level or left canvas
+          if (ray.y >= viewerY || ray.x < 0 || ray.x > canvas.width || ray.y < 0) {
+            break;
+          }
+        }
+      });
+    }
+
+    // Draw simulation
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(10, 10, 40, 0)');
+      gradient.addColorStop(1, 'rgba(5, 5, 20, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw source
+      const sourceX = canvas.width * (sourcePosition / 100);
+      ctx.beginPath();
+      ctx.arc(sourceX, canvas.height * 0.2, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 200, 100, 0.8)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 200, 100, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw glow around source
+      const sourceGlow = ctx.createRadialGradient(
+        sourceX, canvas.height * 0.2, 0,
+        sourceX, canvas.height * 0.2, 30
+      );
+      sourceGlow.addColorStop(0, 'rgba(255, 200, 100, 0.5)');
+      sourceGlow.addColorStop(1, 'rgba(255, 200, 100, 0)');
+      ctx.fillStyle = sourceGlow;
+      ctx.fillRect(sourceX - 30, canvas.height * 0.2 - 30, 60, 60);
+
+      // Draw lens
+      ctx.beginPath();
+      ctx.arc(lens.x, lens.y, lens.radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(100, 149, 237, 0.2)';
+      ctx.fill();
+
+      // Draw lens glow
+      const lensGlow = ctx.createRadialGradient(
+        lens.x, lens.y, lens.radius * 0.8,
+        lens.x, lens.y, lens.radius * 3
+      );
+      lensGlow.addColorStop(0, 'rgba(100, 149, 237, 0.2)');
+      lensGlow.addColorStop(1, 'rgba(100, 149, 237, 0)');
+      ctx.fillStyle = lensGlow;
+      ctx.beginPath();
+      ctx.arc(lens.x, lens.y, lens.radius * 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw viewer level
+      const viewerY = canvas.height * (viewerDistance / 100);
+      ctx.beginPath();
+      ctx.moveTo(0, viewerY);
+      ctx.lineTo(canvas.width, viewerY);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw rays
+      rays.forEach(ray => {
+        if (ray.points.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(ray.points[0].x, ray.points[0].y);
+
+          for (let i = 1; i < ray.points.length; i++) {
+            ctx.lineTo(ray.points[i].x, ray.points[i].y);
+          }
+
+          ctx.strokeStyle = ray.color;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.3;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      });
+
+      // Draw image points where rays intersect viewer level
+      const imagePts = rays.filter(ray => {
+        const pts = ray.points;
+        return pts.length > 1 && pts[pts.length-1].y >= viewerY;
+      }).map(ray => {
+        const pts = ray.points;
+        const p1 = pts[pts.length-2];
+        const p2 = pts[pts.length-1];
+
+        // Calculate intersection with viewer line
+        if (p1.y < viewerY && p2.y >= viewerY) {
+          const t = (viewerY - p1.y) / (p2.y - p1.y);
+          const x = p1.x + t * (p2.x - p1.x);
+          return {x, color: ray.color};
+        }
+        return null;
+      }).filter(pt => pt !== null);
+
+      // Group nearby image points
+      const groupedPoints = [];
+      const groupThreshold = 10;
+
+      imagePts.forEach(pt => {
+        let added = false;
+        for (const group of groupedPoints) {
+          if (Math.abs(group.x - pt.x) < groupThreshold) {
+            group.count++;
+            group.x = (group.x * (group.count - 1) + pt.x) / group.count;
+            added = true;
+            break;
+          }
+        }
+        if (!added) {
+          groupedPoints.push({x: pt.x, count: 1, color: pt.color});
+        }
+      });
+
+      // Draw the image points
+      groupedPoints.forEach(pt => {
+        const size = Math.min(8, Math.max(3, Math.sqrt(pt.count)));
+
+        ctx.beginPath();
+        ctx.arc(pt.x, viewerY, size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 200, 100, 0.8)';
+        ctx.fill();
+
+        // Draw glow
+        const imgGlow = ctx.createRadialGradient(
+          pt.x, viewerY, 0,
+          pt.x, viewerY, size * 3
+        );
+        imgGlow.addColorStop(0, 'rgba(255, 200, 100, 0.5)');
+        imgGlow.addColorStop(1, 'rgba(255, 200, 100, 0)');
+        ctx.fillStyle = imgGlow;
+        ctx.beginPath();
+        ctx.arc(pt.x, viewerY, size * 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Add labels
+      ctx.font = '14px Arial';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillText('Light Source', sourceX + 15, canvas.height * 0.2);
+      ctx.fillText('Massive Object (Lens)', lens.x + lens.radius + 10, lens.y);
+      ctx.fillText('Observer', 10, viewerY - 10);
+
+      // Draw multiple images text if appropriate
+      if (groupedPoints.length > 1) {
+        ctx.font = '16px Arial';
+        ctx.fillStyle = 'rgba(100, 255, 100, 0.8)';
+        ctx.fillText(`${groupedPoints.length} images observed!`, canvas.width - 200, viewerY - 10);
+      }
+    }
+
+    // Animation loop
+    function animate() {
+      if (isAnimating) {
+        updateLens();
+        updateRays();
+        draw();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // Initialize
+    function init() {
+      mass = parseInt(massSlider.value);
+      sourcePosition = parseInt(sourcePositionSlider.value);
+      viewerDistance = parseInt(viewerDistanceSlider.value);
+
+      updateLens();
+      initRays();
+    }
+
+    // Event listeners
+    massSlider.addEventListener('input', () => {
+      mass = parseInt(massSlider.value);
+    });
+
+    sourcePositionSlider.addEventListener('input', () => {
+      sourcePosition = parseInt(sourcePositionSlider.value);
+      initRays();
+    });
+
+    viewerDistanceSlider.addEventListener('input', () => {
+      viewerDistance = parseInt(viewerDistanceSlider.value);
+    });
+
+    resetBtn.addEventListener('click', init);
+
+    // Create a star element
+    function createStar(container) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+
+      // Random position
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+
+      // Random size (mostly small, occasionally larger)
+      const size = Math.random() < 0.9 ? Math.random() * 2 : Math.random() * 4;
+
+      // Random opacity for twinkling effect
+      const opacity = 0.1 + Math.random() * 0.9;
+
+      star.style.left = `${x}vw`;
+      star.style.top = `${y}vh`;
+      star.style.width = `${size}px`;
+      star.style.height = `${size}px`;
+      star.style.opacity = opacity;
+
+      // Add twinkling animation
+      star.style.animation = `twinkle ${2 + Math.random() * 4}s infinite`;
+
+      container.appendChild(star);
+    }
+
+    // Start animation
+    init();
+    animate();
+  });
+</script>
+</body>
+</html>

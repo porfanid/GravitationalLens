@@ -1,0 +1,12 @@
+{
+  "short_name": "Gravitational Lens",
+  "name": "Gravitational Lensing Simulation",
+  "icons": [{
+    "src": "icon.png",
+    "type": "image/png",
+    "sizes": "192x192"
+  }],
+  "start_url": "/?utm_source=homescreen",
+  "background_color": "#0a0a2a",
+  "theme_color": "#6a0dad"
+}
